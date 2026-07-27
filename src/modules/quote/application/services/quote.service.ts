@@ -89,8 +89,9 @@ export class QuoteService {
         pendingUrl,
       });
 
-      // Prefer sandbox link if MP returned one (test creds trigger it)
-      const checkoutUrl = preference.sandboxCheckoutUrl ?? preference.checkoutUrl;
+      // Usa o init_point (URL de produção). Mesmo com creds test, esse URL
+      // funciona e evita bugs de redirect que o sandbox_init_point apresenta.
+      const checkoutUrl = preference.checkoutUrl;
 
       await this.quoteRepository.update(quote.id, {
         mpPreferenceId: preference.preferenceId,
