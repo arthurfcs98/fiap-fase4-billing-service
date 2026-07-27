@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Unit tests + coverage
+        run: npm run test:cov
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: SonarCloud Scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=arthurfcs98
+            -Dsonar.projectKey=arthurfcs98_fiap-fase4-billing-service
+            -Dsonar.sources=src
+            -Dsonar.tests=test
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.exclusions=**/*.spec.ts,**/*.dto.ts,**/*.orm-entity.ts,**/*.module.ts
+
+  docker:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/arthurfcs98/fiap-fase4-billing-service:latest
+            ghcr.io/arthurfcs98/fiap-fase4-billing-service:${{ github.sha }}
