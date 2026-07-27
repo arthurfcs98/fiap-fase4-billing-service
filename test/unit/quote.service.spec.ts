@@ -92,7 +92,7 @@ describe('QuoteService', () => {
     const q = await repo.findBySagaId('saga-1');
     expect(q).toBeTruthy();
     expect(q!.status).toBe(QuoteStatus.PENDING);
-    expect(q!.checkoutUrl).toBe('https://mp/sandbox');
+    expect(q!.checkoutUrl).toBe('https://mp/checkout');
     expect(mp.createCheckoutPreference).toHaveBeenCalledTimes(1);
     expect(rabbit.published[0].routingKey).toBe('billing.saga.quote_generated');
   });
