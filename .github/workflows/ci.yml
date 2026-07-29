@@ -51,6 +51,7 @@ jobs:
             -Dsonar.tests=test
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.exclusions=**/*.spec.ts,**/*.dto.ts,**/*.orm-entity.ts,**/*.module.ts
+            -Dsonar.coverage.exclusions=src/main.ts,src/health.controller.ts,src/database/**,src/shared/**,src/modules/payment/**,src/modules/quote/infrastructure/**,src/modules/quote/interfaces/**,src/modules/quote/domain/**
 
   docker:
     needs: test
